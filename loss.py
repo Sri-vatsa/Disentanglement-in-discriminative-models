@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from disentanglement import revised_ksg_estimator
+
 def regularized_loss(outputs, targets, dis_dict, lambda_=0.5, celeba=False):
     if celeba:
         cross_entropy = F.binary_cross_entropy_with_logits(outputs, targets.float().unsqueeze(1))

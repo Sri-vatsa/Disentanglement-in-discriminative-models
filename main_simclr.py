@@ -1,9 +1,4 @@
 # Data processing
-import scipy.spatial as ss
-import scipy.stats as sst
-from scipy.special import digamma,gamma
-from sklearn.neighbors import KernelDensity
-from cvxopt import matrix,solvers
 from data import get_dataloader
 
 # Modeling
@@ -12,7 +7,6 @@ from models import *
 
 # Plotting
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Training & Evaluation
 from training import train_classifier, train_encoder
@@ -21,7 +15,6 @@ from loss import regularized_loss
 
 # Misc
 import os,argparse
-from tqdm import tqdm, trange
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Process some integers.')

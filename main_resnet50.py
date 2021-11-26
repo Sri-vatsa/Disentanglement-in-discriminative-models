@@ -7,7 +7,6 @@ from models import *
 
 # Plotting
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Training & Evaluation
 from training import train
@@ -16,7 +15,6 @@ from loss import regularized_loss
 
 # Misc
 import os,argparse
-from tqdm import tqdm, trange
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description='Process some integers.')
