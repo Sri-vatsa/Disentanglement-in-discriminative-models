@@ -63,7 +63,7 @@ def train_classifier(dataloader, model, dataset, optimizer, loss_func, reg_lambd
     print('Completed Training')
     return model, epoch_losses
 
-def train_encoder(dataloader, model, optimizer, loss_func, reg_lambda, estimator, num_epochs, learning_rate, batch_size, n_views=2, temperature=0.07, log_interval=100, fp16_precision=False):
+def train_encoder(dataloader, model, optimizer, loss_func, reg_lambda, estimator, num_epochs, learning_rate, batch_size, save_path, n_views=2, temperature=0.07, log_interval=100, fp16_precision=False):
   opt = optimizer(model.parameters(), lr=learning_rate)
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   model.to(device)
@@ -111,7 +111,13 @@ def train_encoder(dataloader, model, optimizer, loss_func, reg_lambda, estimator
       epoch_losses.append(epoch_loss)
       # print statistics
       if epoch % log_interval == log_interval-1: 
-          print('[Epoch %d] loss: %.3f' % (epoch + 1, epoch_loss))
+            print('[Epoch %d] loss: %.3f' % (epoch + 1, epoch_loss))
+            if not exists(save_path+str(epoch+1)+'.pt'):
+                open(save_path+str(epoch+1)+'.pt', 'x')
+            try:
+                torch.save(model.module.state_dict(), save_path+str(epoch+1)+'.pt')
+            except:
+                print(str(epoch)+' could not save!')
       # warmup for the first 10 epochs
       if epoch >= 10:
           scheduler.step()

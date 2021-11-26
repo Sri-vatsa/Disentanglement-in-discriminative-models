@@ -59,10 +59,8 @@ else:
 
 print('num classes: ',str(num_classes))
 resnet_model = ModifiedResNet(num_classes, disentangle)
-if not args.eval_only and not args.finetune:
-    pass #TODO
 
-elif not args.eval_only and not args.finetune:
+if not args.eval_only:
     if args.start_from != 0:
         print('LOADING CHKPT: ', str(args.start_from))
         resnet_model.load_state_dict(torch.load(save_path+str(args.start_from)+'.pt'))
