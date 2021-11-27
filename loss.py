@@ -12,7 +12,7 @@ def regularized_loss(outputs, targets, dis_dict, lambda_=0.5, celeba=False):
     regularization = 0
 
     if dis_dict['state'] and dis_dict['estimator'] == 'ksg':
-        regularization = revised_ksg_estimator(dis_dict['activations'].numpy())
+        regularization = revised_ksg_estimator(dis_dict['activations'])
 
     loss = cross_entropy + lambda_*regularization
     return loss
