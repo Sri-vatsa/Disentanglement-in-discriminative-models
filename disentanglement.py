@@ -7,7 +7,7 @@ def torch_vd(d, q):
 		return d * torch.log(torch.tensor(2))
 	return d * torch.log(2 * torch.special.torch.exp(torch.lgamma(1+1.0/q))) - torch.lgamma(1+d*1.0/q)
 
-def revised_ksg_estimator(variables, k=5, q=float('inf')):
+def revised_ksg_estimator(variables, k=3, q=float('inf')):
 	'''
 	Estimate the multivariate mutual information I(X;Y;Z) = H(X) + H(Y) + H(Z) - H(X,Y,Z)
 	of X, Y and Z from samples {x_i, y_i, z_i}_{i=1}^N
@@ -32,18 +32,18 @@ def revised_ksg_estimator(variables, k=5, q=float('inf')):
 	hidden_dim, N, d = variables.size()
 	N, d, k = torch.tensor([N, d, k]).to(device)
 	data = torch.cat([variables[i] for i in range(hidden_dim)], dim=1)
- 
-	knn_dis = [torch.norm(data - point, dim=1, p=q).topk(k + 1, largest=False)[0][k] for point in data]
+
+	knn_dis = torch.norm(data[None, :, :] - data[:, None, :], dim=-1, p=q).topk(k + 1, dim=1, largest=False)[0][:, k]
+
 	ans_all_data = -torch.special.digamma(k) + torch.log(N) + torch_vd(d*hidden_dim, q)
-	ans_individual = torch.tensor([torch.log(N) + torch_vd(d, q) for i in range(hidden_dim)]).to(device)
+	ans_individual = torch.full([hidden_dim], torch.log(N) + torch_vd(d, q)).to(device)
+ 
+	ans_all_data += torch.sum((d * hidden_dim) * (torch.log(knn_dis) / N))
 	
-	for i in range(N):
-		ans_all_data += (d * hidden_dim) * (torch.log(knn_dis[i]) / N)
-		for j in range(hidden_dim):
-			dist = torch.norm(variables[j] - variables[j][i], dim=1, p=q)
-			num_values = torch.tensor(dist[dist < (knn_dis[i] + 1e-15)].size(dim=0) - 1).to(device)
-			ans_individual[j] += -torch.log(num_values) / N \
-			+ d*torch.log(knn_dis[i]) / N
+	dist = torch.norm(torch.unsqueeze(variables, 1) - torch.unsqueeze(variables, 2), dim=-1, p=q)
+	num_values = torch.le(dist, (knn_dis.unsqueeze(0).unsqueeze(0) + 1e-15)).sum(dim=1).to(device) - 1
+	ans_individual += (-torch.log(num_values) / N \
+			+ d*torch.log(knn_dis.unsqueeze(0)) / N).sum(dim=1)
 
 	sum = torch.sum(ans_individual)
 	
