@@ -33,18 +33,18 @@ def revised_ksg_estimator(variables, k=3, q=float('inf')):
 	N, d, k = torch.tensor([N, d, k]).to(device)
 	data = torch.cat([variables[i] for i in range(hidden_dim)], dim=1)
 
-	knn_dis = torch.norm(data[None, :, :] - data[:, None, :], dim=-1, p=q).topk(k + 1, dim=1, largest=False)[0][:, k]
+	knn_dis = torch.norm(data.unsqueeze(0) - data.unsqueeze(1), dim=-1, p=q).topk(k + 1, dim=1, largest=False)[0][:, k]
 
 	ans_all_data = -torch.special.digamma(k) + torch.log(N) + torch_vd(d*hidden_dim, q)
 	ans_individual = torch.full([hidden_dim], torch.log(N) + torch_vd(d, q)).to(device)
  
 	ans_all_data += torch.sum((d * hidden_dim) * (torch.log(knn_dis) / N))
 	
-	dist = torch.norm(torch.unsqueeze(variables, 1) - torch.unsqueeze(variables, 2), dim=-1, p=q)
+	dist = torch.norm(variables.unsqueeze(1) - variables.unsqueeze(2), dim=-1, p=q)
 	num_values = torch.le(dist, (knn_dis.unsqueeze(0).unsqueeze(0) + 1e-15)).sum(dim=1).to(device) - 1
 	ans_individual += (-torch.log(num_values) / N \
 			+ d*torch.log(knn_dis.unsqueeze(0)) / N).sum(dim=1)
 
 	sum = torch.sum(ans_individual)
 	
-	return torch.abs(sum - ans_all_data)
+	return max(sum - ans_all_data, 0)
