@@ -14,15 +14,18 @@ def revised_ksg_estimator(variables, k=5, q=float('inf')):
 		
     Using Revised KSG mutual information estimator from arxiv.org/abs/1604.03006
 	Input: 
-    	variables: a torch tensor of size (hidden_dim, N, d) where,
+    	variables: a torch tensor of size (hidden_dim, N, d) or (hidden_dim, N) where,
 			hidden_dim: number of variables in MI calculation
 			N: number of samples for each variable, generally corresponds to batch_size
-			d: dimension of each variable, could be 1.
+			d: dimension of each variable, assumed to be 1 if no third dimension found.
 		k: k-nearest neighbor parameter
 		q: l_q norm used to decide k-nearest neighbor distance
 		
     Output: a scalar representing I(variables[0];variables[1];...variables[N-1])
 	'''
+	if len(variables.size()) == 2:
+		variables = variables[:, :, None]
+
 	assert k <= variables.size()[1] - 1, "Set k smaller than num. samples - 1"
 	hidden_dim, N, d = variables.size()
 	N, d, k = torch.tensor([N, d, k])
