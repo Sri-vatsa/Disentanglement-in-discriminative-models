@@ -54,8 +54,8 @@ if not os.path.exists(save_path_classifier):
 if not os.path.exists(save_path_encoder):
     os.makedirs(save_path_encoder)
 
-train_dl = get_dataloader(dataset, "train", data_dir, batch_size=batch_size, num_workers=num_workers)
-test_dl = get_dataloader(dataset, "test", data_dir, batch_size=batch_size, num_workers=num_workers)
+train_dl = get_dataloader(dataset, "train", data_dir, is_contrastive=is_contrastive, batch_size=batch_size, num_workers=num_workers)
+test_dl = get_dataloader(dataset, "test", data_dir, is_contrastive=is_contrastive, batch_size=batch_size, num_workers=num_workers)
 
 print('BUILDING')
 if args.dataset=='celeba':
@@ -73,8 +73,8 @@ simclr_encoder.load_state_dict(checkpoint['state_dict'])
 
 if args.finetune:
     print('FINETUNING')
-    f_train_dl = get_dataloader("imagenet", "train", data_dir, batch_size=batch_size, num_workers=num_workers)
-    f_test_dl = get_dataloader("imagenet", "test", data_dir, batch_size=batch_size, num_workers=num_workers)
+    f_train_dl = get_dataloader("imagenet", "train", data_dir, is_contrastive=True, batch_size=batch_size, num_workers=num_workers)
+    f_test_dl = get_dataloader("imagenet", "test", data_dir, is_contrastive=True, batch_size=batch_size, num_workers=num_workers)
     
     simclr_encoder, losses = train_encoder(f_train_dl, simclr_encoder, optimizer, regularized_loss, reg_lambda, estimator, num_epochs, lr, batch_size, save_path_encoder, n_views=n_views, temperature=temperature, log_interval=log_interval, fp16_precision=fp16_precision)
     
