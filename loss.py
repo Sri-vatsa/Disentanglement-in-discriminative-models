@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from disentanglement import revised_ksg_estimator
+from disentanglement import revised_ksg_estimator, sample_pairwise_activations
 
 def regularized_loss(outputs, targets, dis_dict, lambda_=0.5, celeba=False):
     if celeba:
@@ -13,6 +13,14 @@ def regularized_loss(outputs, targets, dis_dict, lambda_=0.5, celeba=False):
 
     if dis_dict['state'] and dis_dict['estimator'] == 'ksg':
         regularization = revised_ksg_estimator(dis_dict['activations'])
+        
+    elif dis_dict['state'] and dis_dict['estimator'] == 'bgk':
+        sigma = 2*0.4**2
+        num_bins = 256
+        normalize = False
+        epsilon = 1e-10
+        bins = nn.Parameter(torch.linspace(0, 255, num_bins).float(), requires_grad=False)
+        regularization = sample_pairwise_activations(dis_dict['activations'], sigma = sigma, normalize = normalize, epsilon = epsilon, bins = bins)
 
     loss = cross_entropy + lambda_*regularization
     return loss
