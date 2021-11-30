@@ -145,3 +145,31 @@ def plot_confusion_matrix_2(cm,
     plt.ylabel('True label')
     plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
     plt.show()
+
+
+def unsigned_correlation_coefficient(variables):
+	'''
+	Estimate the Unsigned Correlation Coefficient (UCC) based on 
+	Multivariate Correlation Theorem from https://arxiv.org/pdf/1401.4827.pdf
+	Input: 
+		variables: a torch tensor of size (N, hidden_dim) where,
+			N					: number of samples for each variable, generally corresponds to batch_size
+			hidden_dim: number of variables in multivariate correlation calculation
+	
+	Output: a scalar representing UCC(variables[:, 0];variables[:, 1];...variables[:, N-1])
+	'''
+	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+	# Correlation Matrix needs rows to be variables and columns to be observations
+	# Hidden dimension of a layer are variables. Their values in a batch are samples.
+	variables = torch.transpose(variables, 0, 1)
+
+	hidden_dim, N = variables.size()
+
+	corr_matrix = torch.corrcoef(variables)
+	uic_squared = torch.det(corr_matrix)
+
+	ucc_squared = 1 - uic_squared
+	ucc = torch.sqrt(ucc_squared)
+
+	return ucc
